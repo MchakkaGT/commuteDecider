@@ -1,5 +1,6 @@
 export interface UserData {
-  laziness: number; // 1-10
+  date: string; // YYYY-MM-DD or Day Name
+  earlyMeeting: boolean;
   gasLevel: number; // 0-100
   budgetMode: boolean; // boolean
   urgency: number; // 1-10
@@ -7,7 +8,7 @@ export interface UserData {
   destination: string;
 }
 
-export async function fetchSheetData(sheetUrl: string): Promise<UserData | null> {
+export async function fetchSheetData(sheetUrl: string): Promise<UserData[] | null> {
   if (!sheetUrl) return null;
 
   try {
@@ -25,52 +26,49 @@ export async function fetchSheetData(sheetUrl: string): Promise<UserData | null>
   }
 }
 
-function parseCSV(csvText: string): UserData {
+function parseCSV(csvText: string): UserData[] {
   const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
 
-  // Default values
-  const defaultData: UserData = {
-    laziness: 0,
-    gasLevel: 100,
-    budgetMode: false,
-    urgency: 0,
-    origin: "",
-    destination: ""
-  };
-
-  if (lines.length < 2) return defaultData;
+  if (lines.length < 2) return [];
 
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
-  // Handle commas inside quoted strings for addresses
-  // Basic regex to split by comma ONLY if not in quotes
-  const parseLine = (line: string) => {
-    const match = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-    return match ? match.map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"')) : [];
-  };
 
-  const values = parseLine(lines[1]);
+  // Parse all data rows
+  const dataRows: UserData[] = [];
 
-  const rawData: any = {};
+  for (let i = 1; i < lines.length; i++) {
+    const parseLine = (line: string) => {
+      const match = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+      return match ? match.map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"')) : [];
+    };
 
-  headers.forEach((header, index) => {
-    rawData[header] = values[index] || "";
-  });
+    const values = parseLine(lines[i]);
+    if (values.length === 0) continue;
 
-  const getVal = (keys: string[]) => {
-    for (const key of keys) {
-      if (rawData[key] !== undefined) return rawData[key];
-    }
-    return undefined;
-  };
+    const rawData: any = {};
+    headers.forEach((header, index) => {
+      rawData[header] = values[index] || "";
+    });
 
-  return {
-    laziness: parseNumber(getVal(['laziness', 'lazy']), 1, 10, 5),
-    gasLevel: parseNumber(getVal(['gas level', 'gas_level', 'gas']), 0, 100, 100),
-    budgetMode: parseBoolean(getVal(['budget mode', 'budget_mode', 'budget'])),
-    urgency: parseNumber(getVal(['urgency', 'urgent', 'time to leave']), 1, 10, 1),
-    origin: getVal(['origin', 'start', 'from']) || "",
-    destination: getVal(['destination', 'end', 'to']) || "",
-  };
+    const getVal = (keys: string[]) => {
+      for (const key of keys) {
+        if (rawData[key] !== undefined) return rawData[key];
+      }
+      return undefined;
+    };
+
+    dataRows.push({
+      date: getVal(['date', 'day']) || `Row ${i}`,
+      earlyMeeting: parseBoolean(getVal(['early meeting', 'early_meeting', 'meeting', 'early'])),
+      gasLevel: parseNumber(getVal(['gas level', 'gas_level', 'gas']), 0, 100, 100),
+      budgetMode: parseBoolean(getVal(['budget mode', 'budget_mode', 'budget'])),
+      urgency: parseNumber(getVal(['urgency', 'urgent', 'time to leave']), 1, 10, 1),
+      origin: getVal(['origin', 'start', 'from']) || "",
+      destination: getVal(['destination', 'end', 'to']) || "",
+    });
+  }
+
+  return dataRows;
 }
 
 function parseNumber(value: string | undefined, min: number, max: number, fallback: number): number {

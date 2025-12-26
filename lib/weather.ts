@@ -5,19 +5,23 @@ export interface WeatherData {
     windSpeed: number; // km/h
     precipitation: number; // mm
     cityName: string;
+    date: string; // YYYY-MM-DD
 }
+
+// Map of date string to weather data
+export type WeatherForecastMap = Record<string, WeatherData>;
 
 // Default to San Francisco for demo purposes if no coords provided
 // 37.7749° N, 122.4194° W
 const DEFAULT_LAT = 37.7749;
 const DEFAULT_LON = -122.4194;
 
-export async function fetchWeatherData(lat: number = DEFAULT_LAT, lon: number = DEFAULT_LON): Promise<WeatherData | null> {
+export async function fetchWeatherForecast(lat: number = DEFAULT_LAT, lon: number = DEFAULT_LON): Promise<WeatherForecastMap | null> {
     try {
         const params = new URLSearchParams({
             latitude: lat.toString(),
             longitude: lon.toString(),
-            current: 'temperature_2m,precipitation,rain,showers,snowfall,wind_speed_10m',
+            daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,wind_speed_10m_max',
             timezone: 'auto'
         });
 
@@ -33,7 +37,7 @@ export async function fetchWeatherData(lat: number = DEFAULT_LAT, lon: number = 
         }
 
         const json = await weatherRes.json();
-        const current = json.current;
+        const daily = json.daily;
 
         let cityName = "Unknown Location";
         if (cityRes.ok) {
@@ -41,17 +45,37 @@ export async function fetchWeatherData(lat: number = DEFAULT_LAT, lon: number = 
             cityName = cityJson.city || cityJson.locality || cityJson.principalSubdivision || "Unknown Location";
         }
 
-        const isRaining = (current.rain > 0 || current.showers > 0);
-        const isSnowing = (current.snowfall > 0);
+        const forecastMap: WeatherForecastMap = {};
 
-        return {
-            temperature: current.temperature_2m,
-            isRaining,
-            isSnowing,
-            windSpeed: current.wind_speed_10m,
-            precipitation: current.precipitation,
-            cityName
-        };
+        // Loop through daily data
+        for (let i = 0; i < daily.time.length; i++) {
+            const date = daily.time[i];
+            const maxTemp = daily.temperature_2m_max[i];
+            const minTemp = daily.temperature_2m_min[i];
+            // Average temp for the day roughly
+            const avgTemp = (maxTemp + minTemp) / 2;
+
+            const precipSum = daily.precipitation_sum[i];
+            const rainSum = daily.rain_sum[i];
+            const showerSum = daily.showers_sum[i];
+            const snowSum = daily.snowfall_sum[i];
+            const windMax = daily.wind_speed_10m_max[i];
+
+            const isRaining = (rainSum > 0 || showerSum > 0);
+            const isSnowing = (snowSum > 0);
+
+            forecastMap[date] = {
+                temperature: avgTemp,
+                isRaining,
+                isSnowing,
+                windSpeed: windMax,
+                precipitation: precipSum,
+                cityName,
+                date
+            };
+        }
+
+        return forecastMap;
     } catch (error) {
         console.error('Error fetching weather:', error);
         return null;
