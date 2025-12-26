@@ -51,7 +51,7 @@ export function makeDecision(userData: UserData, weather: WeatherData): Recommen
     if (weather.temperature < 5 || weather.temperature > 30) {
         scores.Walk -= 20;
         scores.Bike -= 20;
-        reasoning.push(`Extreme temperature (${weather.temperature}°C) discourages outdoor commute.`);
+        reasoning.push(`Extreme temperature (${Math.round((weather.temperature * 9 / 5) + 32)}°F) discourages outdoor commute.`);
     } else if (weather.temperature >= 15 && weather.temperature <= 25) {
         scores.Walk += 10;
         scores.Bike += 15; // Ideal biking weather

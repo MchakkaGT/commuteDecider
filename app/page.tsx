@@ -178,7 +178,7 @@ export default function Home() {
                   Conditions
                 </h3>
                 <span className="text-xs font-mono text-zinc-500 uppercase">
-                  {location ? "Current Location" : geoError ? <span className="text-red-400">{geoError}</span> : "Locating..."}
+                  {weather?.cityName || (location ? "Locating..." : "San Francisco")}
                 </span>
               </div>
 
@@ -187,7 +187,9 @@ export default function Home() {
                   <div className="flex items-center gap-2 text-zinc-400 mb-1 text-sm">
                     <Thermometer className="w-4 h-4" /> Temp
                   </div>
-                  <div className="text-2xl font-bold text-white">{weather?.temperature}°C</div>
+                  <div className="text-2xl font-bold text-white">
+                    {weather ? Math.round((weather.temperature * 9 / 5) + 32) : "--"}°F
+                  </div>
                 </div>
                 <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800">
                   <div className="flex items-center gap-2 text-zinc-400 mb-1 text-sm">
