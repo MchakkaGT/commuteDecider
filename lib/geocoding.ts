@@ -42,6 +42,13 @@ export async function geocodeAddress(address: string): Promise<Coordinates | nul
             cache[key] = coords;
             return coords;
         }
+
+        // If exact match fails, try stripping details to find the general city
+        if (address.includes(',')) {
+            const shorterAddress = address.split(',').slice(-2).join(',').trim();
+            return geocodeAddress(shorterAddress);
+        }
+
         return null;
 
     } catch (error) {

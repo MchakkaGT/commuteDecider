@@ -11,12 +11,8 @@ export interface WeatherData {
 // Map of date string to weather data
 export type WeatherForecastMap = Record<string, WeatherData>;
 
-// Default to San Francisco for demo purposes if no coords provided
-// 37.7749° N, 122.4194° W
-const DEFAULT_LAT = 37.7749;
-const DEFAULT_LON = -122.4194;
-
-export async function fetchWeatherForecast(lat: number = DEFAULT_LAT, lon: number = DEFAULT_LON): Promise<WeatherForecastMap | null> {
+export async function fetchWeatherForecast(lat?: number, lon?: number): Promise<WeatherForecastMap | null> {
+    if (lat === undefined || lon === undefined) return null;
     try {
         const params = new URLSearchParams({
             latitude: lat.toString(),
