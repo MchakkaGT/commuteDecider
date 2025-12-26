@@ -103,7 +103,7 @@ export default function Home() {
                     {data.routes?.origin || "Loading Address..."}
                   </div>
                   <div className="mt-auto text-xs text-zinc-500 font-mono italic">
-                    {location ? "Calculated from Your Location" : "Using Home Base Address"}
+                    Primary Home Base Address
                   </div>
                 </div>
               </div>
