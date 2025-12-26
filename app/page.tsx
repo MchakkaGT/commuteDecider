@@ -154,12 +154,14 @@ export default function Home() {
             )}
 
             {/* Weekly Grid */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-indigo-400" /> Your Week
+            {/* Weekly List (Premium Cards) */}
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold mb-8 flex items-center gap-3 text-white">
+                <Calendar className="w-8 h-8 text-indigo-400" />
+                Weekly Plan
               </h2>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="space-y-8">
                 {data.results?.map((day: any, i: number) => {
                   const rec = day.recommendation;
                   const weather = day.weather;
@@ -171,46 +173,77 @@ export default function Home() {
 
                   return (
                     <div key={i} className={cn(
-                      "relative p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02]",
-                      isCar && "bg-zinc-900 border-zinc-800",
-                      isBike && "bg-green-950/20 border-green-900/50",
-                      isWalk && "bg-emerald-950/20 border-emerald-900/50"
+                      "relative overflow-hidden rounded-3xl border-2 transition-all hover:shadow-2xl",
+                      isCar && "bg-zinc-900 border-zinc-700 shadow-zinc-900/50",
+                      isBike && "bg-[#0a1f1c] border-emerald-800 shadow-emerald-900/30",
+                      isWalk && "bg-[#1a1500] border-amber-900/50 shadow-amber-900/20"
                     )}>
-                      {/* Header */}
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <div className="text-indigo-400 font-mono text-sm uppercase tracking-wider mb-1">{userData.date}</div>
-                          <h3 className="text-2xl font-bold flex items-center gap-2">
-                            {isCar && "🚗 Car"}
-                            {isBike && "🚲 Bike"}
-                            {isWalk && "👣 Walk"}
-                          </h3>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold">{Math.round((weather.temperature * 9 / 5) + 32)}°F</div>
-                          <div className="text-xs text-zinc-500">{weather.isRaining ? "Rain" : weather.isSnowing ? "Snow" : "Clear"}</div>
-                        </div>
-                      </div>
+                      <div className="flex flex-col md:flex-row">
+                        {/* Left: Big Icon & Result */}
+                        <div className={cn(
+                          "p-8 flex-shrink-0 flex flex-col items-center justify-center w-full md:w-48 text-center",
+                          isCar && "bg-zinc-800",
+                          isBike && "bg-emerald-900/30",
+                          isWalk && "bg-amber-900/20"
+                        )}>
+                          {isCar && <Car className="w-16 h-16 text-white mb-4" />}
+                          {isBike && <Bike className="w-16 h-16 text-emerald-400 mb-4" />}
+                          {isWalk && <Footprints className="w-16 h-16 text-amber-400 mb-4" />}
 
-                      {/* Reasoning */}
-                      <div className="mb-6 space-y-2">
-                        {rec.reasoning.slice(0, 3).map((r: string, idx: number) => (
-                          <div key={idx} className="text-sm p-3 bg-black/40 rounded-lg text-zinc-300 border border-white/5">
-                            {r}
+                          <div className="text-2xl font-black text-white tracking-widest uppercase">
+                            {rec.bestMethod}
                           </div>
-                        ))}
-                      </div>
+                          <div className="mt-2 text-xs font-mono opacity-60">RECOMMENDED</div>
+                        </div>
 
-                      {/* User Factors */}
-                      <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500 border-t border-white/5 pt-4">
-                        <div className={cn("p-2 rounded-md", userData.earlyMeeting ? "bg-red-900/20 text-red-200" : "bg-black/20")}>
-                          Meeting: {userData.earlyMeeting ? "YES" : "No"}
-                        </div>
-                        <div className="p-2 bg-black/20 rounded-md">
-                          Gas: {userData.gasLevel}%
-                        </div>
-                        <div className="p-2 bg-black/20 rounded-md">
-                          Urgency: {userData.urgency}/10
+                        {/* Right: Details */}
+                        <div className="p-8 flex-grow">
+                          {/* Header: Date & Weather */}
+                          <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+                            <div>
+                              <div className="text-indigo-400 font-bold text-lg mb-1">{userData.date}</div>
+                              {/* Route Display */}
+                              <div className="flex items-center gap-2 text-sm text-zinc-400">
+                                <MapPin className="w-4 h-4 text-zinc-500" />
+                                <span className="font-medium text-zinc-300">{userData.origin}</span>
+                                <ArrowRight className="w-3 h-3 text-zinc-600" />
+                                <span className="font-medium text-zinc-300">{userData.destination}</span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-3xl font-bold text-white">{Math.round((weather.temperature * 9 / 5) + 32)}°F</div>
+                              <div className="text-sm text-zinc-400 font-medium">
+                                {weather.isRaining ? "🌧️ Rain" : weather.isSnowing ? "❄️ Snow" : "☀️ Clear"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Reasoning */}
+                          <div className="space-y-3 mb-6">
+                            {rec.reasoning.map((r: string, idx: number) => (
+                              <div key={idx} className="flex items-start gap-3 text-zinc-300">
+                                <CheckCircle2 className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                                <span>{r}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Stats/Badges */}
+                          <div className="flex flex-wrap gap-2 mt-auto">
+                            {userData.earlyMeeting && (
+                              <Badge className="bg-red-500/10 text-red-400 border-red-500/20 px-3 py-1">
+                                ⚠️ Early Meeting
+                              </Badge>
+                            )}
+                            <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 px-3 py-1">
+                              Urgency: {userData.urgency}/10
+                            </Badge>
+                            {(isCar || userData.gasLevel < 100) && (
+                              <Badge className={cn("px-3 py-1", userData.gasLevel < 25 ? "bg-red-500/10 text-red-400" : "bg-green-500/10 text-green-400")}>
+                                ⛽ Gas: {userData.gasLevel.toFixed(0)}%
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
