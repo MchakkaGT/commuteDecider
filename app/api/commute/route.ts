@@ -66,20 +66,37 @@ export async function GET(request: NextRequest) {
         
         let weather: WeatherData | undefined = weatherForecast[userData.date];
         
-        // If not found by exact string, try to see if it's a "Monday" etc. 
         if (!weather) {
-            // Fallback: Just take today's weather? Or the first available?
              const keys = Object.keys(weatherForecast).sort();
-             weather = weatherForecast[keys[0]]; // Default
              
-             // Simple day name matching?
-             // If userData.date is "Monday", find the date in keys that is a Monday
+             // 1. Try matching day name (Monday, Tuesday...)
              const dayMatch = keys.find(k => {
-                 const d = new Date(k);
+                 const d = new Date(k + "T00:00:00"); // Ensure local time parsing
                  const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
                  return dayName.toLowerCase() === userData.date.toLowerCase();
              });
+             
+             // 2. Try matching MM/DD or MM-DD
+             const monthDayMatch = keys.find(k => {
+                 // k is YYYY-MM-DD
+                 // Check if userData.date matches MM/DD part
+                 // Normalize User Date: Replace / with - and pad?
+                 // Simple check: does k end with userData.date? (e.g. 2023-12-01 ends with 12-01)
+                 // Or exact match if user wrote 12/01 -> 12-01
+                 const userClean = userData.date.replace(/\//g, '-').padStart(5, '0'); // 1/1 -> 01-01? simpler just to parse
+                 
+                 const parts = userData.date.split(/[\/-]/);
+                 if (parts.length === 2) {
+                     const m = parts[0].padStart(2, '0');
+                     const d = parts[1].padStart(2, '0');
+                     return k.endsWith(`- ${ m } -${ d } `);
+                 }
+                 return false;
+             });
+
              if (dayMatch) weather = weatherForecast[dayMatch];
+             else if (monthDayMatch) weather = weatherForecast[monthDayMatch];
+             else weather = weatherForecast[keys[0]]; // Fallback to today
         }
         
         if (!weather) return null; // Should not happen if forecast worked

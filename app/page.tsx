@@ -155,18 +155,72 @@ export default function Home() {
 
             {/* Weekly Grid */}
             <div>
-              <div className="flex items-center justify-between p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <span className="text-zinc-400 text-sm">Budget Mode</span>
-                <span className={cn("text-xs px-2 py-1 rounded border", userData?.budgetMode ? "bg-green-500/10 border-green-500/50 text-green-400" : "bg-zinc-800 border-zinc-700 text-zinc-500")}>
-                  {userData?.budgetMode ? "ACTIVE" : "OFF"}
-                </span>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Calendar className="w-6 h-6 text-indigo-400" /> Your Week
+              </h2>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {data.results?.map((day: any, i: number) => {
+                  const rec = day.recommendation;
+                  const weather = day.weather;
+                  const userData = day.userData;
+
+                  const isCar = rec.bestMethod === 'Car';
+                  const isBike = rec.bestMethod === 'Bike';
+                  const isWalk = rec.bestMethod === 'Walk';
+
+                  return (
+                    <div key={i} className={cn(
+                      "relative p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02]",
+                      isCar && "bg-zinc-900 border-zinc-800",
+                      isBike && "bg-green-950/20 border-green-900/50",
+                      isWalk && "bg-emerald-950/20 border-emerald-900/50"
+                    )}>
+                      {/* Header */}
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <div className="text-indigo-400 font-mono text-sm uppercase tracking-wider mb-1">{userData.date}</div>
+                          <h3 className="text-2xl font-bold flex items-center gap-2">
+                            {isCar && "🚗 Car"}
+                            {isBike && "🚲 Bike"}
+                            {isWalk && "👣 Walk"}
+                          </h3>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">{Math.round((weather.temperature * 9 / 5) + 32)}°F</div>
+                          <div className="text-xs text-zinc-500">{weather.isRaining ? "Rain" : weather.isSnowing ? "Snow" : "Clear"}</div>
+                        </div>
+                      </div>
+
+                      {/* Reasoning */}
+                      <div className="mb-6 space-y-2">
+                        {rec.reasoning.slice(0, 3).map((r: string, idx: number) => (
+                          <div key={idx} className="text-sm p-3 bg-black/40 rounded-lg text-zinc-300 border border-white/5">
+                            {r}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* User Factors */}
+                      <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500 border-t border-white/5 pt-4">
+                        <div className={cn("p-2 rounded-md", userData.earlyMeeting ? "bg-red-900/20 text-red-200" : "bg-black/20")}>
+                          Meeting: {userData.earlyMeeting ? "YES" : "No"}
+                        </div>
+                        <div className="p-2 bg-black/20 rounded-md">
+                          Gas: {userData.gasLevel}%
+                        </div>
+                        <div className="p-2 bg-black/20 rounded-md">
+                          Urgency: {userData.urgency}/10
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </div>
-
-      </div>
+          </>
         )}
-    </div>
-    </div >
+      </div>
+    </main>
   );
 }
