@@ -109,11 +109,27 @@ export function makeDecision(userData: UserData, weather: WeatherData, times?: C
     // Urgency (1-10)
     // Urgent (< 15 mins equivalent to urgency > 8 maybe?)
     // Let's assume Urgency 10 is VERY urgent.
+    // Urgency (1-10)
+    // User Rules:
+    // 8, 9, 10 -> Car
+    // 3, 4, 5, 6, 7 -> Bike
+    // 1, 2 -> Walk
     if (userData.urgency >= 8) {
-        scores.Car += 40; // Assuming car is fastest usually
-        scores.Bike += 20; // Bike can beat traffic
-        scores.Walk -= 50; // Walking is slow
-        reasoning.push("High urgency requires faster transport.");
+        scores.Car += 50;
+        scores.Bike -= 20;
+        scores.Walk -= 100;
+        reasoning.push("High Urgency (8+) requires driving.");
+    } else if (userData.urgency >= 3) {
+        scores.Bike += 50; // Strong boost for Bike
+        scores.Car -= 20;  // Prefer active transport if not emergency
+        scores.Walk -= 30; // Walking is too slow for moderate urgency
+        reasoning.push("Moderate Urgency (3-7) makes Biking the best balance.");
+    } else {
+        // Urgency 1-2
+        scores.Walk += 30;
+        scores.Bike -= 10;
+        scores.Car -= 40; // No need to drive
+        reasoning.push("Low Urgency favors Walking.");
     }
 
     // Budget Mode
