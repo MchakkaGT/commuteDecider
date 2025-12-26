@@ -80,7 +80,7 @@ export function makeDecision(userData: UserData, weather: WeatherData, times?: C
     // 2. Soft Factors (The "Should"s)
 
     // Temperature
-    if (weather.temperature < 5 || weather.temperature > 30) {
+    if (weather.temperature < 0 || weather.temperature > 35) {
         scores.Walk -= 20;
         scores.Bike -= 20;
         reasoning.push(`Extreme temperature (${Math.round((weather.temperature * 9 / 5) + 32)}°F) discourages outdoor commute.`);
