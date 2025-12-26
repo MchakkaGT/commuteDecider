@@ -34,6 +34,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
 
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [geoError, setGeoError] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -46,7 +47,10 @@ export default function Home() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-        (err) => console.error("Geolocation error:", err)
+        (err) => {
+          console.error("Geolocation error:", err);
+          setGeoError("Location access denied. Using defaults.");
+        }
       );
     }
   }, []);
@@ -173,7 +177,9 @@ export default function Home() {
                   <Cloud className="w-5 h-5 text-zinc-400" />
                   Conditions
                 </h3>
-                <span className="text-xs font-mono text-zinc-500 uppercase">{location ? "Current Location" : "San Francisco (Default)"}</span>
+                <span className="text-xs font-mono text-zinc-500 uppercase">
+                  {location ? "Current Location" : geoError ? <span className="text-red-400">{geoError}</span> : "Locating..."}
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -194,7 +200,7 @@ export default function Home() {
                     <Droplets className="w-4 h-4" /> Rain Status
                   </div>
                   <div className="text-lg font-semibold text-white">
-                    {weather?.isRaining ? "Raining" : weather?.isSnowing ? "Snowing" : "Clear"}
+                    {weather ? (weather.isRaining ? "Raining" : weather.isSnowing ? "Snowing" : "Clear") : "--"}
                   </div>
                 </div>
               </div>
