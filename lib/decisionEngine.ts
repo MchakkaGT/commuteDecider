@@ -140,23 +140,32 @@ export function makeDecision(userData: UserData, weather: WeatherData, times?: C
         reasoning.push("Budget mode favors free transport (Walk/Bike).");
     }
 
-    // Find Winner
+    // --- Find Winner ---
     let bestMethod: CommuteMethod = 'Car';
     let maxScore = -Infinity;
 
-    (Object.keys(scores) as CommuteMethod[]).forEach(method => {
+    for (const method of (Object.keys(scores) as CommuteMethod[])) {
         if (scores[method] > maxScore) {
             maxScore = scores[method];
             bestMethod = method;
         }
-    });
+    }
 
-    // If all are 0 (e.g. disaster), defaults to Car but maybe add note? 
-    // For now simple max logic.
+    // --- Post-Process Reasoning ---
+    // Remove "Car is faster" messages if the final recommendation is NOT car
+    let finalReasoning = reasoning.filter(r => {
+        if (bestMethod !== 'Car') {
+            if (r.includes("Car is significantly faster") || r.includes("requires driving")) return false;
+        }
+        if (bestMethod !== 'Bike') {
+            if (r.includes("Biking") && r.includes("faster than driving")) return false;
+        }
+        return true;
+    });
 
     return {
         bestMethod,
         scores,
-        reasoning
+        reasoning: finalReasoning
     };
 }
