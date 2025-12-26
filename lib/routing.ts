@@ -18,11 +18,27 @@ export async function getCommuteTimes(start: Coordinates, end: Coordinates): Pro
         fetchRoute(start, end, 'walking')
     ]);
 
-    return {
-        car,
-        bike,
-        foot
-    };
+    // Public OSRM server often returns identical results for different profiles
+    // or is slow. We will implement a logical fallback based on distance.
+    const results = { car, bike, foot };
+
+    // If bike/foot are identical to car (suspicious), or null, estimate them
+    if (car && (!bike || bike.duration === car.duration)) {
+        // Assume 12 mph (19.3 km/h) for biking = ~5.3 m/s
+        results.bike = {
+            distance: car.distance,
+            duration: Math.round(car.distance / 5.3)
+        };
+    }
+    if (car && (!foot || foot.duration === car.duration)) {
+        // Assume 3.1 mph (5 km/h) for walking = ~1.4 m/s
+        results.foot = {
+            distance: car.distance,
+            duration: Math.round(car.distance / 1.4)
+        };
+    }
+
+    return results;
 }
 
 async function fetchRoute(start: Coordinates, end: Coordinates, profile: 'driving' | 'cycling' | 'walking'): Promise<RouteData | null> {
