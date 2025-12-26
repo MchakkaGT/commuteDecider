@@ -86,38 +86,47 @@ export default function Home() {
 
         {data && (
           <>
-            {/* Global Info: Location & Route */}
+            {/* Start & End Locations */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-zinc-400">
-                  <MapPin className="w-5 h-5" /> Location Context
-                </h3>
-                <div className="text-2xl font-bold text-white">
-                  {data.cityName || "Unknown City"}
-                </div>
-                <div className="text-sm text-zinc-500">
-                  {location ? "Using Device Location" : "Using Sheet Origin"}
+              {/* Start Location Box */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+                <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-3 min-h-[140px]">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Start Journey
+                    </h3>
+                    <MapPin className="w-5 h-5 text-zinc-700" />
+                  </div>
+                  <div className="text-xl font-bold text-white leading-tight">
+                    {data.routes?.origin || "Loading Address..."}
+                  </div>
+                  <div className="mt-auto text-xs text-zinc-500 font-mono italic">
+                    {location ? "Calculated from Your Location" : "Using Home Base Address"}
+                  </div>
                 </div>
               </div>
 
-              {data.routes?.origin && (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-zinc-400">
-                    <Gauge className="w-5 h-5" /> Commute Route
-                  </h3>
-                  <div className="flex flex-col gap-2 opacity-80">
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-zinc-300 truncate">{data.routes.origin}</span>
-                    </div>
-                    <div className="ml-[3px] w-[2px] h-4 bg-zinc-800" />
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="text-zinc-300 truncate">{data.routes.destination}</span>
-                    </div>
+              {/* End Location Box */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-orange-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+                <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-3 min-h-[140px]">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-rose-400 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-rose-500" />
+                      Destination
+                    </h3>
+                    <ArrowRight className="w-5 h-5 text-zinc-700" />
+                  </div>
+                  <div className="text-xl font-bold text-white leading-tight">
+                    {data.routes?.destination || "Loading Destination..."}
+                  </div>
+                  <div className="mt-auto text-xs text-zinc-500 font-mono italic">
+                    {data.cityName ? `Near ${data.cityName}` : "Primary Destination Location"}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Commute Times Banner */}
