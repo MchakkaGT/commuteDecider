@@ -1,4 +1,4 @@
-```typescript
+
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchSheetData, UserData } from '@/lib/sheets';
 import { fetchWeatherForecast, WeatherData } from '@/lib/weather';
@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
         ]);
         originCoords = o;
         destCoords = d;
-        
+
         if (originCoords) {
-             lat = originCoords.lat;
-             lon = originCoords.lon;
+            lat = originCoords.lat;
+            lon = originCoords.lon;
         }
     }
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     if (originCoords && destCoords) {
         commuteTimes = await getCommuteTimes(originCoords, destCoords);
     }
-    
+
     // 4. Process Each Day
     const results = userDataList.map(userData => {
         // Try to match date
@@ -63,42 +63,42 @@ export async function GET(request: NextRequest) {
         // If date is "Monday", we need to map to next Monday? 
         // For simplicity, let's assume the user puts YYYY-MM-DD or we just use the forecast order if they match?
         // Let's look for exact match in forecast map, otherwise fallback to index 0?
-        
-        let weather: WeatherData | undefined = weatherForecast[userData.date];
-        
-        if (!weather) {
-             const keys = Object.keys(weatherForecast).sort();
-             
-             // 1. Try matching day name (Monday, Tuesday...)
-             const dayMatch = keys.find(k => {
-                 const d = new Date(k + "T00:00:00"); // Ensure local time parsing
-                 const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-                 return dayName.toLowerCase() === userData.date.toLowerCase();
-             });
-             
-             // 2. Try matching MM/DD or MM-DD
-             const monthDayMatch = keys.find(k => {
-                 // k is YYYY-MM-DD
-                 // Check if userData.date matches MM/DD part
-                 // Normalize User Date: Replace / with - and pad?
-                 // Simple check: does k end with userData.date? (e.g. 2023-12-01 ends with 12-01)
-                 // Or exact match if user wrote 12/01 -> 12-01
-                 const userClean = userData.date.replace(/\//g, '-').padStart(5, '0'); // 1/1 -> 01-01? simpler just to parse
-                 
-                 const parts = userData.date.split(/[\/-]/);
-                 if (parts.length === 2) {
-                     const m = parts[0].padStart(2, '0');
-                     const d = parts[1].padStart(2, '0');
-                     return k.endsWith(`- ${ m } -${ d } `);
-                 }
-                 return false;
-             });
 
-             if (dayMatch) weather = weatherForecast[dayMatch];
-             else if (monthDayMatch) weather = weatherForecast[monthDayMatch];
-             else weather = weatherForecast[keys[0]]; // Fallback to today
+        let weather: WeatherData | undefined = weatherForecast[userData.date];
+
+        if (!weather) {
+            const keys = Object.keys(weatherForecast).sort();
+
+            // 1. Try matching day name (Monday, Tuesday...)
+            const dayMatch = keys.find(k => {
+                const d = new Date(k + "T00:00:00"); // Ensure local time parsing
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+                return dayName.toLowerCase() === userData.date.toLowerCase();
+            });
+
+            // 2. Try matching MM/DD or MM-DD
+            const monthDayMatch = keys.find(k => {
+                // k is YYYY-MM-DD
+                // Check if userData.date matches MM/DD part
+                // Normalize User Date: Replace / with - and pad?
+                // Simple check: does k end with userData.date? (e.g. 2023-12-01 ends with 12-01)
+                // Or exact match if user wrote 12/01 -> 12-01
+                const userClean = userData.date.replace(/\//g, '-').padStart(5, '0'); // 1/1 -> 01-01? simpler just to parse
+
+                const parts = userData.date.split(/[\/-]/);
+                if (parts.length === 2) {
+                    const m = parts[0].padStart(2, '0');
+                    const d = parts[1].padStart(2, '0');
+                    return k.endsWith(`-${m}-${d}`);
+                }
+                return false;
+            });
+
+            if (dayMatch) weather = weatherForecast[dayMatch];
+            else if (monthDayMatch) weather = weatherForecast[monthDayMatch];
+            else weather = weatherForecast[keys[0]]; // Fallback to today
         }
-        
+
         if (!weather) return null; // Should not happen if forecast worked
 
         return {
@@ -112,10 +112,10 @@ export async function GET(request: NextRequest) {
         results,
         commuteTimes,
         routes: {
-             origin: originCoords?.displayName || firstRow.origin,
-             destination: destCoords?.displayName || firstRow.destination
+            origin: originCoords?.displayName || firstRow.origin,
+            destination: destCoords?.displayName || firstRow.destination
         },
         cityName: Object.values(weatherForecast)[0]?.cityName
     });
 }
-```
+
