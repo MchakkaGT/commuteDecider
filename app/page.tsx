@@ -16,23 +16,15 @@ export default function Home() {
   const [sheetUrl, setSheetUrl] = useState("");
   const [savedUrl, setSavedUrl] = useState("");
   const [isClient, setIsClient] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [geoError, setGeoError] = useState("");
 
   useEffect(() => {
     setIsClient(true);
     const stored = localStorage.getItem("commute_sheet_url");
     if (stored) { setSheetUrl(stored); setSavedUrl(stored); }
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-        (err) => { console.error("Geolocation error:", err); setGeoError("Location access denied. Using defaults."); }
-      );
-    }
   }, []);
 
   const { data, error, isLoading, mutate } = useSWR(
-    savedUrl ? `/api/commute?sheetUrl=${encodeURIComponent(savedUrl)}${location ? `&lat=${location.lat}&lon=${location.lon}` : ''}` : null,
+    savedUrl ? `/api/commute?sheetUrl=${encodeURIComponent(savedUrl)}` : null,
     fetcher, { refreshInterval: 10000 } // Poll every 10s
   );
 

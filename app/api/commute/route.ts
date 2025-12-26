@@ -71,6 +71,10 @@ export async function GET(request: NextRequest) {
         // Apply Global Budget Mode
         userData.budgetMode = globalBudgetMode;
 
+        // Propagate Origin/Destination if missing in subsequent rows
+        if (!userData.origin) userData.origin = firstRow.origin;
+        if (!userData.destination) userData.destination = firstRow.destination;
+
         // Apply Simulated Gas Level
         userData.gasLevel = Math.max(0, Math.round(currentGasLevel));
 
@@ -112,7 +116,8 @@ export async function GET(request: NextRequest) {
             // Gas Deduction Logic
             // If Car is chosen, deduct gas based on distance
             if (recommendation.bestMethod === 'Car' && commuteTimes?.car) {
-                const miles = commuteTimes.car.distance * 0.000621371;
+                // distance is in meters. 1 mile = 1609.34 meters
+                const miles = commuteTimes.car.distance / 1609.34;
                 const totalMiles = miles * 2; // Round trip
                 const percentUsed = (totalMiles / MAX_RANGE_MILES) * 100;
                 currentGasLevel -= percentUsed;
