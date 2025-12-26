@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Cloud, MapPin, Gauge, Droplets, Thermometer, Wind, Car, Bike, Footprints, AlertCircle, Calendar } from "lucide-react";
+import { Cloud, MapPin, Gauge, Droplets, Thermometer, Wind, Car, Bike, Footprints, AlertCircle, Calendar, ArrowRight, CheckCircle2 } from "lucide-react";
 import useSWR from 'swr';
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -255,5 +255,13 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
+  return (
+    <span className={cn("text-xs font-medium rounded-full border", className)}>
+      {children}
+    </span>
   );
 }

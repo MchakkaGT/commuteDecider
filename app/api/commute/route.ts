@@ -56,14 +56,25 @@ export async function GET(request: NextRequest) {
         commuteTimes = await getCommuteTimes(originCoords, destCoords);
     }
 
-    // 4. Process Each Day
-    const results = userDataList.map(userData => {
-        // Try to match date
-        // User date format might vary. Let's try to fuzzy match or just assume YYYY-MM-DD
-        // If date is "Monday", we need to map to next Monday? 
-        // For simplicity, let's assume the user puts YYYY-MM-DD or we just use the forecast order if they match?
-        // Let's look for exact match in forecast map, otherwise fallback to index 0?
+    // 4. Process Each Day (Sequential for Gas Simulation)
+    let currentGasLevel = 100; // Start fresh each request/week
+    const CAR_MPG = 25;
+    const TANK_GALLONS = 12;
+    const MAX_RANGE_MILES = CAR_MPG * TANK_GALLONS; // ~300 miles
 
+    // Use the first row's budget mode for everyone
+    const globalBudgetMode = userDataList.length > 0 ? userDataList[0].budgetMode : false;
+
+    const results = [];
+
+    for (const userData of userDataList) {
+        // Apply Global Budget Mode
+        userData.budgetMode = globalBudgetMode;
+
+        // Apply Simulated Gas Level
+        userData.gasLevel = Math.max(0, Math.round(currentGasLevel));
+
+        // Match Weather
         let weather: WeatherData | undefined = weatherForecast[userData.date];
 
         if (!weather) {
@@ -71,42 +82,49 @@ export async function GET(request: NextRequest) {
 
             // 1. Try matching day name (Monday, Tuesday...)
             const dayMatch = keys.find(k => {
-                const d = new Date(k + "T00:00:00"); // Ensure local time parsing
+                const d = new Date(k + "T00:00:00");
                 const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
                 return dayName.toLowerCase() === userData.date.toLowerCase();
             });
 
-            // 2. Try matching MM/DD or MM-DD
+            // 2. Try matching MM/DD or MM-DD (ignoring year)
             const monthDayMatch = keys.find(k => {
-                // k is YYYY-MM-DD
-                // Check if userData.date matches MM/DD part
-                // Normalize User Date: Replace / with - and pad?
-                // Simple check: does k end with userData.date? (e.g. 2023-12-01 ends with 12-01)
-                // Or exact match if user wrote 12/01 -> 12-01
-                const userClean = userData.date.replace(/\//g, '-').padStart(5, '0'); // 1/1 -> 01-01? simpler just to parse
-
-                const parts = userData.date.split(/[\/-]/);
-                if (parts.length === 2) {
-                    const m = parts[0].padStart(2, '0');
-                    const d = parts[1].padStart(2, '0');
-                    return k.endsWith(`-${m}-${d}`);
+                const userParts = userData.date.split(/[^0-9]/).filter(p => p);
+                if (userParts.length >= 2) {
+                    const m = parseInt(userParts[0]);
+                    const d = parseInt(userParts[1]);
+                    const kParts = k.split('-');
+                    const kM = parseInt(kParts[1]);
+                    const kD = parseInt(kParts[2]);
+                    return m === kM && d === kD;
                 }
                 return false;
             });
 
             if (dayMatch) weather = weatherForecast[dayMatch];
             else if (monthDayMatch) weather = weatherForecast[monthDayMatch];
-            else weather = weatherForecast[keys[0]]; // Fallback to today
+            else weather = weatherForecast[keys[0]]; // Fallback
         }
 
-        if (!weather) return null; // Should not happen if forecast worked
+        if (weather) {
+            const recommendation = makeDecision(userData, weather, commuteTimes);
 
-        return {
-            userData,
-            weather,
-            recommendation: makeDecision(userData, weather, commuteTimes)
-        };
-    }).filter(r => r !== null);
+            // Gas Deduction Logic
+            // If Car is chosen, deduct gas based on distance
+            if (recommendation.bestMethod === 'Car' && commuteTimes?.car) {
+                const miles = commuteTimes.car.distance * 0.000621371;
+                const totalMiles = miles * 2; // Round trip
+                const percentUsed = (totalMiles / MAX_RANGE_MILES) * 100;
+                currentGasLevel -= percentUsed;
+            }
+
+            results.push({
+                userData: { ...userData }, // Snapshot
+                weather,
+                recommendation
+            });
+        }
+    }
 
     return NextResponse.json({
         results,
