@@ -38,8 +38,22 @@ function parseCSV(csvText: string): UserData[] {
 
   for (let i = 1; i < lines.length; i++) {
     const parseLine = (line: string) => {
-      const match = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-      return match ? match.map(v => v.trim().replace(/^"|"$/g, '').replace(/""/g, '"')) : [];
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+      return result;
     };
 
     const values = parseLine(lines[i]);
