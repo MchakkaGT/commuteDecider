@@ -208,6 +208,54 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Route Card */}
+            {data?.routes?.origin && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Gauge className="w-5 h-5 text-zinc-400" />
+                    Commute
+                  </h3>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-zinc-300 truncate">{data.routes.origin}</span>
+                  </div>
+                  <div className="ml-[3px] w-[2px] h-4 bg-zinc-800" />
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="text-zinc-300 truncate">{data.routes.destination}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 text-center">
+                    <Car className="w-5 h-5 mx-auto mb-1 text-blue-400" />
+                    <span className="text-xs text-zinc-500">Drive</span>
+                    <div className="font-bold text-white">
+                      {data.commuteTimes?.car ? Math.round(data.commuteTimes.car.duration / 60) + 'm' : '--'}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 text-center">
+                    <Bike className="w-5 h-5 mx-auto mb-1 text-green-400" />
+                    <span className="text-xs text-zinc-500">Bike</span>
+                    <div className="font-bold text-white">
+                      {data.commuteTimes?.bike ? Math.round(data.commuteTimes.bike.duration / 60) + 'm' : '--'}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 text-center">
+                    <Footprints className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
+                    <span className="text-xs text-zinc-500">Walk</span>
+                    <div className="font-bold text-white">
+                      {data.commuteTimes?.foot ? Math.round(data.commuteTimes.foot.duration / 60) + 'm' : '--'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* User Data Card */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col gap-6">
               <div className="flex items-center justify-between">
